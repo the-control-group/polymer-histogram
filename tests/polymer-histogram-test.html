@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>polymer-histogram tests</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+	<script src="../../webcomponentsjs/webcomponents.js"></script>
+	<script src="../../web-component-tester/browser.js"></script>
+	<script src="../../jquery/dist/jquery.min.js"></script>
+	<script src="../../lodash/lodash.js"></script>
+	<link rel="import" href="../polymer-histogram.html">
+</head>
+<body unresolved>
+	<polymer-histogram coordinates="[ ['A',1],['B',2],['C',3] ]" title="Test Graph" yAxisTitle="Y Label"></polymer-histogram>
+	<script>
+		window.addEventListener('polymer-ready', function(e) {
+			var el = document.querySelector('polymer-histogram');
+			var container = el.$.container;
+			var title = $( container.querySelector('.highcharts-title tspan') ).html();
+			var yTitle = $( container.querySelector('text[text-anchor="middle"] tspan') ).html();
+			var xCategoryA = $( container.querySelector('.highcharts-xaxis-labels text:nth-child(1)') ).html();
+			var xCategoryB = $( container.querySelector('.highcharts-xaxis-labels text:nth-child(2)') ).html();
+			var xCategoryC = $( container.querySelector('.highcharts-xaxis-labels text:nth-child(3)') ).html();
+
+			suite('<polymer-histogram>', function () {
+				test('initializes', function () {
+					assert(el._readied);
+				});
+				test('has Title binding', function () {
+					assert.equal( title, 'Test Graph');
+				});
+				test('has Y Axis Title binding', function () {
+					assert.equal( yTitle, 'Y Label');
+				});
+				test('has X Categories binding', function () {
+					assert.equal( xCategoryA, 'A' );
+					assert.equal( xCategoryB, 'B' );
+					assert.equal( xCategoryC, 'C' );
+				});
+			});
+		});
+	</script>
+</body>
+</html>

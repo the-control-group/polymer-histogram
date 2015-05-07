@@ -1,0 +1,189 @@
+<!--
+@element polymer-histogram
+@author designbyraychou
+@homepage https://github.com/the-control-group/polymer-histogram
+
+__Example:__
+
+```
+	<polymer-element name="polymer-histogram-demo">
+		<template>
+			<style>
+				#container {
+					width: 800px;
+					margin: 0 auto;
+					text-align: center;
+				}
+			</style>
+			<div id="container">
+				<p>An example of using <code>&lt;polymer-histogram&gt;</code>:</p>
+				<polymer-histogram
+					coordinates="{{ coordinates }}"
+					title="Demo Graph"
+					yAxisTitle="Y Axis Label"></polymer-histogram>
+			</div>
+		</template>
+		<script src="../lodash/lodash.js"></script>
+		<script>
+			function setFake() {
+				return [Math.floor(Math.random()*10), Number((Math.random() * 10).toFixed(2)) ];
+			}
+			Polymer({
+				publish: {
+					coordinates: [
+						setFake(),
+						setFake(),
+						setFake(),
+						setFake(),
+						setFake()
+					]
+				},
+				ready: function() {
+					var poly = this;
+					setInterval(function() {
+						var coordinates = _.clone(poly.coordinates);
+						coordinates = coordinates.slice(1);
+						coordinates.push(setFake());
+						poly.coordinates = coordinates;
+					}, 5000);
+				}
+			});
+		</script>
+	</polymer-element></polymer-element>
+	<polymer-histogram-demo></polymer-histogram-demo>
+```
+# Attributes
+
+#### `coordinates`
+
+An array of arrays of x and y values. y values must be numbers.
+
+#### `title`
+
+Title displayed above graph;
+
+#### `yAxisTitle`
+
+Title displayed left of graph to indicate y values;
+
+-->
+
+<link rel="import" href="../polymer/polymer.html">
+<polymer-element name="polymer-histogram" attributes="coordinates title yAxisTitle">
+	<template>
+		<link rel="stylesheet" type="text/css" href="./polymer-histogram.css">
+		<div id="container" style="height: 300px"></div>
+	</template>
+	<script src="../highcharts/adapters/standalone-framework.js"></script>
+	<script src="../highcharts/highcharts.js"></script>
+	<script src="../lodash/lodash.js"></script>
+	<script>
+		Polymer({
+			publish: {
+				title: null,
+				chart: null,
+				xAxis: [],
+				yAxis: [],
+				yAxisTitle: null,
+				coordinates: []
+			},
+			ready: function(event,detail,sender) {
+				var poly = this;
+
+				poly.setAxises();
+				poly.async(poly.drawGraph);
+			},
+			// Watch for coordinates attribute changes
+			coordinatesChanged: function(oldVal,newVal) {
+				var poly = this;
+				if( poly.chart != null ) {
+					poly.setAxises();
+				}
+			},
+			// Redraw graph when labels change (x axis)
+			yAxisChanged: function(oldVal,newVal) {
+				var poly = this;
+				if( oldVal != null && oldVal.length != 0 ) {
+					poly.chart.series[0].setData(poly.yAxis);
+				}
+			},
+			// Redraw graph when data change (y axis)
+			xAxisChanged: function(oldVal,newVal) {
+				var poly = this;
+				if( oldVal != null && oldVal.length != 0 ) {
+					poly.chart.xAxis[0].setCategories(poly.xAxis);
+				}
+			},
+			// Update axis properties
+			setAxises: function() {
+				var poly = this;
+
+				poly.xAxis = [];
+				poly.yAxis = [];
+				_.each(poly.coordinates, function(coordinate,key) {
+					if( coordinate.length == 2 ) {
+						poly.xAxis[key] = (coordinate[0]);
+						poly.yAxis[key] = (coordinate[1]);
+					}
+				});
+			},
+			drawGraph: function() {
+				var poly = this;
+				var title, yAxisTitle;
+				if( poly.title ) {
+					title = {
+						title: {
+							text: poly.title
+						}
+					};
+				} else {
+					title = {
+						title: null
+					};
+				}
+				if( poly.yAxisTitle ) {
+					yAxisTitle = {
+						yAxis: {
+							title: {
+								text: poly.yAxisTitle
+							}
+						}
+					};
+				} else {
+					yAxisTitle = {
+						yAxis: {
+							title: null
+						}
+					};
+				}
+
+				var settings = _.extend({
+					credits: {
+						enabled: false
+					},
+					chart: {
+						renderTo: poly.$.container,
+						type: 'column'
+					},
+					xAxis: {
+						categories: poly.xAxis
+					},
+					plotOptions: {
+						column: {
+							groupPadding: 0,
+							pointPadding: 0,
+							borderWidth: 0
+						}
+					},
+					series: [{
+						showInLegend: false,
+						data: poly.yAxis
+					}]
+				}, title, yAxisTitle);
+
+				// Create Chart
+				poly.chart = new Highcharts.Chart(settings);
+			}
+		});
+	</script>
+</polymer-element>
